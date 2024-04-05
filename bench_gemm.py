@@ -9,7 +9,7 @@ def run_gemm(a, b, c):
     return res
 
 
-@pytest.mark.parametrize('n', [10, 100])
+@pytest.mark.parametrize('n', [10, 100, 1000])
 def test_gemm(benchmark, n):
     a = np.eye(n, dtype=float, order='F')
     b = np.eye(n, dtype=float, order='F')
