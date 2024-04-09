@@ -11,7 +11,7 @@ on:
 
 jobs:
   benchmarks:
-    runs-on: ubuntu-latest
+    runs-on: {ubuntu-latest, macos-latest}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v3
@@ -19,10 +19,12 @@ jobs:
           python-version: "3.12"
 
       - name: Install dependencies
-        run: pip install scipy numpy pytest pytest-codspeed
+        run: pip install scipy numpy pytest pytest-codspeed threadpoolctl
 
       - name: Run benchmarks
         uses: CodSpeedHQ/action@v2
         with:
           token: ${{ secrets.CODSPEED_TOKEN }}
-          run: OPENBLAS_NUM_THREADS=1 pytest bench_gemm.py --codspeed
+          run: |
+               python -m threadpoolctl -i scipy.linalg
+               OPENBLAS_NUM_THREADS=1 pytest bench_gemm.py --codspeed
