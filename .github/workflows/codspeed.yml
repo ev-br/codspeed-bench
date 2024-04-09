@@ -21,10 +21,11 @@ jobs:
       - name: Install dependencies
         run: pip install scipy numpy pytest pytest-codspeed threadpoolctl
 
+      - name: Show system info
+        run: python -m threadpoolctl -i scipy.linalg
+
       - name: Run benchmarks
         uses: CodSpeedHQ/action@v2
         with:
           token: ${{ secrets.CODSPEED_TOKEN }}
-          run: |
-               python -m threadpoolctl -i scipy.linalg
-               OPENBLAS_NUM_THREADS=1 pytest bench_gemm.py --codspeed
+          run: OPENBLAS_NUM_THREADS=1 pytest bench_gemm.py --codspeed
