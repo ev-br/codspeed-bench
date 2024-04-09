@@ -25,4 +25,4 @@ jobs:
         uses: CodSpeedHQ/action@v2
         with:
           token: ${{ secrets.CODSPEED_TOKEN }}
-          run: pytest bench_gemm.py --codspeed
+          run: OPENBLAS_NUM_THREADS=1 pytest bench_gemm.py --codspeed
