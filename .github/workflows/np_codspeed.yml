@@ -1,0 +1,53 @@
+name: np-codspeed-benchmarks
+
+on:
+  push:
+    branches:
+      - "main" # or "master"
+  pull_request:
+  # `workflow_dispatch` allows CodSpeed to trigger backtest
+  # performance analysis in order to generate initial data.
+  workflow_dispatch:
+
+jobs:
+  benchmarks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: mamba-org/setup-micromamba@v1
+        with:
+          environment-file: environment.yml
+          init-shell: bash
+          cache-environment: true
+          post-cleanup: 'all'
+
+      - name: Install dependencies
+        run: |
+           micromamba list
+           python --version
+           # XXX openblas wheel is super old for x86_64
+           pip install -i https://pypi.anaconda.org/multibuild-wheels-staging/simple scipy-openblas32 
+           pip install pytest pytest-codspeed threadpoolctl
+           # micromamba list
+           cython --version
+        shell: bash -el {0}   # {0} is required (why)
+
+      - name: Clone and build numpy
+        run: |
+           git clone --depth=1 https://github.com/numpy/numpy.git
+           cd numpy
+           git submodule update --init
+           spin config-openblas --with-scipy-openblas=32
+           spin build --with-scipy-openblas 32 -- -Dpkg_config_path=$PWD/.openblas
+           cd ..
+        shell: bash -el {0}
+
+      - name: Run benchmarks
+        uses: CodSpeedHQ/action@v2
+        with:
+          token: ${{ secrets.CODSPEED_TOKEN }}
+          run: |
+            export PYTHONPATH=$PWD/numpy/build-install/usr/lib/python3.11/site-packages/
+            OPENBLAS_NUM_THREADS=1 pytest bench_np.py --codspeed
+            # XXX how to check that numpy uses openblas not lapack-lite?
+          shell: bash -el {0}
