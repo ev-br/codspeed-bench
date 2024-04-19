@@ -14,23 +14,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: mamba-org/setup-micromamba@v1
+      - uses: actions/setup-python@v3
         with:
-          environment-file: environment.yml
-          init-shell: bash
-          cache-environment: true
-          post-cleanup: 'all'
+          python-version: "3.12"
 
       - name: Install dependencies
         run: |
-           micromamba list
-           python --version
            # XXX openblas wheel is super old for x86_64
            pip install -i https://pypi.anaconda.org/multibuild-wheels-staging/simple scipy-openblas32 
-           pip install pytest pytest-codspeed threadpoolctl
-           # micromamba list
-           cython --version
-        shell: bash -el {0}   # {0} is required (why)
+           pip install pytest pytest-codspeed threadpoolctl cython ninja meson pkg-config spin
 
       - name: Clone and build numpy
         run: |
@@ -40,7 +32,6 @@ jobs:
            spin config-openblas --with-scipy-openblas=32
            spin build --with-scipy-openblas 32 -- -Dpkg_config_path=$PWD/.openblas
            cd ..
-        shell: bash -el {0}
 
       - name: Run benchmarks
         uses: CodSpeedHQ/action@v2
@@ -50,4 +41,4 @@ jobs:
             export PYTHONPATH=$PWD/numpy/build-install/usr/lib/python3.11/site-packages/
             OPENBLAS_NUM_THREADS=1 pytest bench_np.py --codspeed
             # XXX how to check that numpy uses openblas not lapack-lite?
-          shell: bash -el {0}
+
