@@ -22,7 +22,7 @@ jobs:
         run: |
            # XXX openblas wheel is super old for x86_64
            pip install -i https://pypi.anaconda.org/multibuild-wheels-staging/simple scipy-openblas32 
-           pip install pytest pytest-codspeed threadpoolctl cython ninja meson pkg-config spin
+           pip install pytest pytest-codspeed threadpoolctl cython ninja meson pkgconfig spin
 
       - name: Clone and build numpy
         run: |
@@ -38,7 +38,8 @@ jobs:
         with:
           token: ${{ secrets.CODSPEED_TOKEN }}
           run: |
-            export PYTHONPATH=$PWD/numpy/build-install/usr/lib/python3.11/site-packages/
+            ls -l $PWD/numpy/build-install
+            export PYTHONPATH=$PWD/numpy/build-install/usr/lib/python3.12/site-packages/
             OPENBLAS_NUM_THREADS=1 pytest bench_np.py --codspeed
             # XXX how to check that numpy uses openblas not lapack-lite?
 
