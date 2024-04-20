@@ -11,18 +11,23 @@ on:
 
 jobs:
   benchmarks:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        pyver: ["3.12"]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v3
         with:
-          python-version: "3.12"
+          python-version: ${{matrix.pyver}}
 
       - name: Install dependencies
         run: |
            # XXX openblas wheel is super old for x86_64
-           pip install -i https://pypi.anaconda.org/multibuild-wheels-staging/simple scipy-openblas32 
-           pip install pytest pytest-codspeed threadpoolctl cython ninja meson pkgconfig spin
+           # pip install -i https://pypi.anaconda.org/multibuild-wheels-staging/simple scipy-openblas32 
+           pip install scipy-openblas32
+           pip install pytest pytest-benchmark threadpoolctl cython ninja meson pkgconfig spin
 
       - name: Clone and build numpy
         run: |
@@ -39,7 +44,7 @@ jobs:
           token: ${{ secrets.CODSPEED_TOKEN }}
           run: |
             ls -l $PWD/numpy/build-install
-            export PYTHONPATH=$PWD/numpy/build-install/usr/lib/python3.12/site-packages/
-            OPENBLAS_NUM_THREADS=1 pytest bench_np.py --codspeed
+            export PYTHONPATH=$PWD/numpy/build-install/usr/lib/python${{matrix.pyver}}/site-packages/
+            OPENBLAS_NUM_THREADS=1 pytest bench_np.py
             # XXX how to check that numpy uses openblas not lapack-lite?
 
