@@ -1,0 +1,17 @@
+# To use:
+#
+#   $ conda env create -f environment.yml  # `mamba` works too for this command
+#   $ conda activate numpy-dev
+#
+name: bench-np
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11 #need to pin to avoid issues with builds
+  - cython>=3.0
+  - compilers
+  - setuptools
+  - ninja
+  - pkg-config
+  - meson-python
+  - spin

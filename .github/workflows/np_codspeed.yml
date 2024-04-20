@@ -1,0 +1,45 @@
+name: np-codspeed-benchmarks
+
+on:
+  push:
+    branches:
+      - "main" # or "master"
+  pull_request:
+  # `workflow_dispatch` allows CodSpeed to trigger backtest
+  # performance analysis in order to generate initial data.
+  workflow_dispatch:
+
+jobs:
+  benchmarks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v3
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+           # XXX openblas wheel is super old for x86_64
+           pip install -i https://pypi.anaconda.org/multibuild-wheels-staging/simple scipy-openblas32 
+           pip install pytest pytest-codspeed threadpoolctl cython ninja meson pkgconfig spin
+
+      - name: Clone and build numpy
+        run: |
+           git clone --depth=1 https://github.com/numpy/numpy.git
+           cd numpy
+           git submodule update --init
+           spin config-openblas --with-scipy-openblas=32
+           spin build --with-scipy-openblas 32 -- -Dpkg_config_path=$PWD/.openblas
+           cd ..
+
+      - name: Run benchmarks
+        uses: CodSpeedHQ/action@v2
+        with:
+          token: ${{ secrets.CODSPEED_TOKEN }}
+          run: |
+            ls -l $PWD/numpy/build-install
+            export PYTHONPATH=$PWD/numpy/build-install/usr/lib/python3.12/site-packages/
+            OPENBLAS_NUM_THREADS=1 pytest bench_np.py --codspeed
+            # XXX how to check that numpy uses openblas not lapack-lite?
+
