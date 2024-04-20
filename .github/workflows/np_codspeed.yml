@@ -25,7 +25,8 @@ jobs:
       - name: Install dependencies
         run: |
            # XXX openblas wheel is super old for x86_64
-           pip install -i https://pypi.anaconda.org/multibuild-wheels-staging/simple scipy-openblas32 
+           # pip install -i https://pypi.anaconda.org/multibuild-wheels-staging/simple scipy-openblas32 
+           pip install scipy-openblas32
            pip install pytest pytest-codspeed threadpoolctl cython ninja meson pkgconfig spin
 
       - name: Clone and build numpy
