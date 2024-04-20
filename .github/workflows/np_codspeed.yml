@@ -20,7 +20,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v3
         with:
-          python-version: {{matrix.pyver}}
+          python-version: ${{matrix.pyver}}
 
       - name: Install dependencies
         run: |
@@ -43,7 +43,7 @@ jobs:
           token: ${{ secrets.CODSPEED_TOKEN }}
           run: |
             ls -l $PWD/numpy/build-install
-            export PYTHONPATH=$PWD/numpy/build-install/usr/lib/python{{matrix.pyver}}/site-packages/
+            export PYTHONPATH=$PWD/numpy/build-install/usr/lib/python${{matrix.pyver}}/site-packages/
             OPENBLAS_NUM_THREADS=1 pytest bench_np.py --codspeed
             # XXX how to check that numpy uses openblas not lapack-lite?
 
